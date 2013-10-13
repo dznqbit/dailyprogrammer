@@ -1,108 +1,68 @@
 # http://www.reddit.com/r/dailyprogrammer/comments/1e97ob/051313_challenge_125_easy_word_analytics/
 
-import sys
-import re
+import sys, re, string
 from collections import defaultdict
 from operator import itemgetter
+
+def get_counts(seq):
+   counts = {}
+   for x in seq:
+     counts[x] = counts.get(x, 0) + 1
+   return counts
+
+
 
 class KillerWordLikeApplicationDocumentAnalyzer():
   def __init__(self, document):
     self.document = document.lower()
+    self.words = re.sub(r"[^\w|\s]", "", self.document).split()
+    self.letters = re.sub(r"\W", "", self.document)
+    self.unused_letters = [x for x in 'abcdefghijklmnopqrstuvwxyz' if x not in self.letters]
+    self.symbols = [x for x in self.document if x not in string.letters + string.digits]
 
-  def __words(self):
-    return re.sub(r"[^\w|\s]", "", self.document).split()
-  
-  def __letters(self):
-    return re.sub(r"\W", "", self.document)
+    # ... word counts
+    self.word_counts = get_counts(self.words)
+    self.sorted_word_counts = sorted([(count,word) for (word, count) in self.word_counts.items()])
 
-  @classmethod
-  def __countEntities(cls, list):
-    def countOccurence(dict, item):
-      dict[item] += 1
-      return dict
+    # ... letter counts
+    self.letter_counts = get_counts(self.letters)
+    self.sorted_letter_counts = sorted([(count,letter) for (letter, count) in self.letter_counts.items()])
 
-    return reduce(countOccurence, list, defaultdict(int)).items()
+    # ... first words
+    self.first_words = []
+    prev_line = ''
+    for line in self.document.split('\n'):
+      if line and not prev_line:
+        self.first_words.append(line.split())[0])
+      prev_line = line
 
-  @classmethod
-  def __mostCommonEntities(cls, list):
-    return map(
-      itemgetter(0), 
-      sorted(
-        KillerWordLikeApplicationDocumentAnalyzer.__countEntities(list),
-        key=itemgetter(1), reverse=True
-      )
-    )
+    self.sorted_first_word_counts = get_counts(self.first_words)
+      
 
-  def wordCount(self):
-    return len(self.__words())
-
-  def letterCount(self):
-    return len(self.__letters())
-
-  def symbolCount(self):
-    return len(re.sub(r"\w|\s", "", self.document))
-
-  def commonWords(self, count):
-    return KillerWordLikeApplicationDocumentAnalyzer.__mostCommonEntities(self.__words())[0:count]
-    
-  def commonLetters(self, count):
-    return KillerWordLikeApplicationDocumentAnalyzer.__mostCommonEntities(self.__letters())[0:count]
-
-  def mostCommonParagraphLeader(self):
-    paragraphs = filter(lambda p: len(p) > 0, re.split(r"\n\n", self.document))
-        
-    if len(paragraphs) > 0:
-      countedEntities = KillerWordLikeApplicationDocumentAnalyzer.__mostCommonEntities(
-        map(lambda line: re.match(r"\w+", line).group(0), paragraphs)
-      )
-    
-      return countedEntities[0]
-    else:
-      return None
-
-  def uniqueWords(self):
-    return map(
-      itemgetter(0),
-      filter(
-        lambda wordAndCount: wordAndCount[1] == 1,
-        KillerWordLikeApplicationDocumentAnalyzer.__countEntities(self.__words())
-      )
-    )
-
-  def unusedLetters(self):
-    return list(
-      filter(
-        lambda letter: self.document.find(letter) < 0,
-        "abcdefghijklmnopqrstuvwxyz"
-      )
-    )
 
 with open(sys.argv[1], "r") as file:
   analyzer = KillerWordLikeApplicationDocumentAnalyzer(file.read())
 
-print("{0} words".format(analyzer.wordCount()))
-print("{0} letters".format(analyzer.letterCount()))
-print("{0} symbols".format(analyzer.symbolCount()))
+  print len(analyzer.words), "words"
+  print len(analyzer.letters), "letters"
+  print len(analyzer.symbols), "symbols"
 
-formatWord = lambda x: "\"{}\"".format(x)
-formatLetter = lambda x: "'{}'".format(x)
+  print "top three most common words:"
+  for count, word in analyzer.sorted_word_counts[:3]:
+    print '%s (%s times)' % (word, count)
+  
+  for count, word in analyzer.sorted_letter_counts:
+    if count==1:
+      print '%s (%s times)' % (word, count)
 
-commonWords = analyzer.commonWords(3)
-if len(commonWords) > 0:
-  print("Top three most common words: {0}".format(", ".join(map(formatWord, commonWords))))
 
-commonLetters = analyzer.commonLetters(3)
-if len(commonLetters) > 0:
-  print("Top three most common letters: {0}".format(", ".join(map(formatLetter, commonLetters))))
+  print "top three most common letters:"
+  for count, letter in analyzer.sorted_letter_counts[:3]:
+    print '%s (%s times)' % (letter, count)
 
-commonParagraphLeader = analyzer.mostCommonParagraphLeader()
-if commonParagraphLeader:
-  print("{0} is the most common first word of all paragraphs".format(formatWord(commonParagraphLeader)))
+  print 'unused letters:'
+  print '\n'.join(analyzer.unused_letters)
 
-uniqueWords = analyzer.uniqueWords()
-if len(uniqueWords) > 0:
-  print("Words used only once: {0}".format(", ".join(map(formatWord, uniqueWords))))
 
-unusedLetters = analyzer.unusedLetters()
-if len(unusedLetters) > 0:
-  print("Letters not used in this document: {0}".format(", ".join(map(formatLetter, unusedLetters))))
+  print 'most common first word of all paragraphs:', analyzer.sorted_first_word_counts[0][1]
+
