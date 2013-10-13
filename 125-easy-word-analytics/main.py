@@ -22,22 +22,22 @@ class KillerWordLikeApplicationDocumentAnalyzer():
 
     # ... word counts
     self.word_counts = get_counts(self.words)
-    self.sorted_word_counts = sorted([(count,word) for (word, count) in self.word_counts.items()])
+    self.sorted_word_counts = list(reversed(sorted([(count,word) for (word, count) in self.word_counts.items()])))
 
     # ... letter counts
     self.letter_counts = get_counts(self.letters)
-    self.sorted_letter_counts = sorted([(count,letter) for (letter, count) in self.letter_counts.items()])
+    self.sorted_letter_counts = list(reversed(sorted([(count,letter) for (letter, count) in self.letter_counts.items()])))
 
     # ... first words
     self.first_words = []
     prev_line = ''
     for line in self.document.split('\n'):
       if line and not prev_line:
-        self.first_words.append(line.split())[0])
+        self.first_words.append(line.split()[0])
       prev_line = line
 
-    self.sorted_first_word_counts = get_counts(self.first_words)
-      
+    self.first_word_counts = get_counts(self.first_words)
+    self.sorted_first_word_counts = list(reversed(sorted([(count,x) for (x, count) in self.first_word_counts.items()])))
 
 
 with open(sys.argv[1], "r") as file:
@@ -51,6 +51,7 @@ with open(sys.argv[1], "r") as file:
   for count, word in analyzer.sorted_word_counts[:3]:
     print '%s (%s times)' % (word, count)
   
+  print 'letters used exactly once:'
   for count, word in analyzer.sorted_letter_counts:
     if count==1:
       print '%s (%s times)' % (word, count)
