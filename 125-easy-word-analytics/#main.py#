@@ -1,0 +1,69 @@
+# http://www.reddit.com/r/dailyprogrammer/comments/1e97ob/051313_challenge_125_easy_word_analytics/
+
+import sys, re, string
+from collections import defaultdict
+from operator import itemgetter
+
+def get_counts(seq):
+   counts = {}
+   for x in seq:
+     counts[x] = counts.get(x, 0) + 1
+   return counts
+
+
+
+class KillerWordLikeApplicationDocumentAnalyzer():
+  def __init__(self, document):
+    self.document = document.lower()
+    self.words = re.sub(r"[^\w|\s]", "", self.document).split()
+    self.letters = re.sub(r"\W", "", self.document)
+    self.unused_letters = [x for x in 'abcdefghijklmnopqrstuvwxyz' if x not in self.letters]
+    self.symbols = [x for x in self.document if x not in string.letters + string.digits]
+
+    # ... word counts
+    self.word_counts = get_counts(self.words)
+    self.sorted_word_counts = list(reversed(sorted([(count,word) for (word, count) in self.word_counts.items()])))
+
+    # ... letter counts
+    self.letter_counts = get_counts(self.letters)
+    self.sorted_letter_counts = list(reversed(sorted([(count,letter) for (letter, count) in self.letter_counts.items()])))
+
+    # ... first words
+    self.first_words = []
+    prev_line = ''
+    for line in self.document.split('\n'):
+      if line and not prev_line:
+        self.first_words.append(line.split()[0])
+      prev_line = line
+
+    self.first_word_counts = get_counts(self.first_words)
+    self.sorted_first_word_counts = list(reversed(sorted([(count,x) for (x, count) in self.first_word_counts.items()])))
+
+
+with open(sys.argv[1], "r") as file:
+  analyzer = KillerWordLikeApplicationDocumentAnalyzer(file.read())
+
+  print len(analyzer.words), "words"
+  print len(analyzer.letters), "letters"
+  print len(analyzer.symbols), "symbols"
+
+  print "top three most common words:"
+  for count, word in analyzer.sorted_word_counts[:3]:
+    print '%s (%s times)' % (word, count)
+  
+  print 'letters used exactly once:'
+  for count, word in analyzer.sorted_letter_counts:
+    if count==1:
+      print '%s (%s times)' % (word, count)
+
+
+  print "top three most common letters:"
+  for count, letter in analyzer.sorted_letter_counts[:3]:
+    print '%s (%s times)' % (letter, count)
+
+  print 'unused letters:'
+  print '\n'.join(analyzer.unused_letters)
+
+
+  print 'most common first word of all paragraphs:', analyzer.sorted_first_word_counts[0][1]
+'
