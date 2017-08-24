@@ -1,0 +1,6 @@
+[package]
+name = "270-transpose-input-text"
+version = "0.1.0"
+authors = ["Quinton Harris <quinton.harris@gmail.com>"]
+
+[dependencies]
