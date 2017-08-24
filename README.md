@@ -1,7 +1,7 @@
 dznqbit dailyprogrammer
 ===============
 
-Attempts at [r/dailyprogrammer](http://www.reddit.com/r/dailyprogrammer) problems
+Attempts at [r/dailyprogrammer](http://www.reddit.com/r/dailyprogrammer) problems.
 
 Medium
 ------
